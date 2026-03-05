@@ -1,111 +1,198 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { IoFlame, IoSearch } from 'react-icons/io5';
 import { motion } from 'framer-motion';
-import { Button } from '@components/common/Button';
 import { useAuth } from '@hooks/useAuth';
+import { recipeService } from '@services/recipeService';
+import { Loader } from '@components/common/Loader';
+import { RecipeCard } from '@components/home/RecipeCard';
+import { CategoryChips } from '@components/home/CategoryChips';
+import { formatNumber, getInitials } from '@utils/helpers';
 
 /**
- * Home Page - Landing page
+ * Redesigned Home Page - Recipe Discovery
  */
 export const HomePage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  
+  const [recommendedRecipes, setRecommendedRecipes] = useState([]);
+  const [trendingRecipes, setTrendingRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('trending');
 
-  // Redirect to feed if already authenticated
+  const categories = [
+    { id: 'trending', label: 'Trending', icon: '🔥' },
+    { id: 'breakfast', label: 'Breakfast', icon: '🍳' },
+    { id: 'vegan', label: 'Vegan', icon: '🥗' },
+    { id: 'lunch', label: 'Lunch', icon: '🍱' },
+    { id: 'dinner', label: 'Dinner', icon: '🍽️' },
+  ];
+
+  /**
+   * Fetch recommended recipes
+   */
   useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch personalized recommendations
+        const recommended = await recipeService.getPersonalizedFeed(1, 6);
+        setRecommendedRecipes(recommended.recipes || recommended);
+        
+        // Fetch trending recipes
+        const trending = await recipeService.getTrendingRecipes(10);
+        setTrendingRecipes(trending);
+      } catch (error) {
+        console.error('Failed to fetch recipes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isAuthenticated) {
-      navigate('/feed');
+      fetchRecipes();
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
+
+  // Auth loading
+  if (authLoading) {
+    return <Loader fullScreen />;
+  }
+
+  // Redirect to landing if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/welcome" replace />;
+  }
+
+  // Get greeting based on time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-b from-dark to-dark-lighter">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center max-w-4xl"
-      >
-        {/* Logo */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          className="text-8xl mb-6"
-        >
-          🍳
-        </motion.div>
+    <div className="min-h-screen bg-dark pb-20">
+      {/* Header */}
+      <div className="px-4 pt-8 pb-4 safe-top">
+        {/* Greeting */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <p className="text-gray-light mb-1">{getGreeting()},</p>
+            <h1 className="text-4xl font-headline font-bold flex items-center gap-2">
+              {user?.username || 'Chef'} <span className="text-3xl">👋</span>
+            </h1>
+          </div>
 
-        {/* Title */}
-        <h1 className="text-5xl md:text-7xl font-headline font-bold mb-6">
-          Cook What You{' '}
-          <span className="text-primary">Watch</span>
-        </h1>
-
-        {/* Subtitle */}
-        <p className="text-xl md:text-2xl text-gray-light mb-12 max-w-2xl mx-auto">
-          Turn food reels into actionable recipes. Discover, save, and cook delicious meals
-          from short-form food content.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button
-            variant="primary"
-            size="large"
-            onClick={() => navigate('/register')}
+          {/* Avatar */}
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex-shrink-0"
           >
-            Get Started
-          </Button>
-          <Button
-            variant="outline"
-            size="large"
-            onClick={() => navigate('/login')}
-          >
-            Login
-          </Button>
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.username}
+                className="w-14 h-14 rounded-full object-cover border-2 border-primary"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-xl font-headline font-bold">
+                {getInitials(user?.username)}
+              </div>
+            )}
+          </button>
         </div>
 
-        {/* Features */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20"
-        >
-          <FeatureCard
-            icon="📹"
-            title="Vertical Food Feed"
-            description="Scroll through engaging food videos just like your favorite social apps"
-          />
-          <FeatureCard
-            icon="📖"
-            title="Structured Recipes"
-            description="Every video comes with detailed ingredients and step-by-step instructions"
-          />
-          <FeatureCard
-            icon="💾"
-            title="Save & Search"
-            description="Build your personal recipe collection and find exactly what you're craving"
-          />
-        </motion.div>
-      </motion.div>
-    </div>
-  );
-};
+        {/* Search Bar */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate('/search')}
+            className="flex-1 flex items-center gap-3 bg-dark-light border border-dark-lighter rounded-2xl px-4 py-4"
+          >
+            <IoSearch size={20} className="text-gray" />
+            <span className="text-gray">What are you craving?</span>
+          </button>
 
-/**
- * Feature Card Component
- */
-const FeatureCard = ({ icon, title, description }) => {
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="p-6 bg-dark-lighter rounded-2xl border border-dark-light"
-    >
-      <div className="text-5xl mb-4">{icon}</div>
-      <h3 className="text-xl font-headline font-bold mb-2">{title}</h3>
-      <p className="text-gray-light">{description}</p>
-    </motion.div>
+          <button
+            onClick={() => navigate('/search')}
+            className="bg-dark-light border border-dark-lighter rounded-2xl p-4"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              className="text-gray"
+            >
+              <path
+                d="M2 6h16M2 10h10M2 14h16"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Category Chips */}
+        <CategoryChips
+          categories={categories}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
+      </div>
+
+      {/* Content */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader size="large" />
+        </div>
+      ) : (
+        <>
+          {/* Recommended Section */}
+          <div className="px-4 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-2xl font-headline font-bold mb-1">
+                  Recommended for You
+                </h2>
+                <p className="text-sm text-gray-light">
+                  Based on your recent likes
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/search')}
+                className="text-primary hover:text-primary-light font-semibold flex items-center gap-1"
+              >
+                See All
+                <span>→</span>
+              </button>
+            </div>
+
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              {recommendedRecipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} variant="horizontal" />
+              ))}
+            </div>
+          </div>
+
+          {/* Trending Section */}
+          <div className="px-4">
+            <h2 className="text-2xl font-headline font-bold mb-4">
+              Trending Near You
+            </h2>
+
+            <div className="grid grid-cols-1 gap-4">
+              {trendingRecipes.slice(0, 4).map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} variant="large" />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 };

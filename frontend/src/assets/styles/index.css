@@ -222,3 +222,15 @@ html {
 img[src=""], img:not([src]) {
   @apply bg-dark-light;
 }
+
+/* ... existing styles ... */
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
