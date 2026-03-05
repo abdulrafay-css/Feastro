@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-dark text-white font-body;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Hide scrollbar but keep functionality */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Component Styles */
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200 active:scale-95 no-tap-highlight;
+  }
+  
+  .btn-secondary {
+    @apply bg-dark-light hover:bg-dark-lighter text-white font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200 active:scale-95 no-tap-highlight;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200 active:scale-95 no-tap-highlight;
+  }
+  
+  .input-field {
+    @apply bg-dark-light border border-dark-lighter text-white placeholder-gray rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
+  }
+  
+  .card {
+    @apply bg-dark-lighter rounded-xl p-4 border border-dark-light;
+  }
+  
+  .overlay-gradient {
+    background: linear-gradient(to top, rgba(18, 18, 18, 0.9) 0%, rgba(18, 18, 18, 0.6) 30%, transparent 100%);
+  }
+  
+  .shimmer {
+    background: linear-gradient(90deg, #1E1E1E 0%, #2A2A2A 50%, #1E1E1E 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Video Player Styles */
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Recipe Overlay Styles */
+.recipe-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, #121212 70%, rgba(18, 18, 18, 0.95) 100%);
+  border-radius: 24px 24px 0 0;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+/* Custom Scrollbar for Recipe Overlay */
+.recipe-overlay::-webkit-scrollbar {
+  width: 4px;
+  display: block;
+}
+
+.recipe-overlay::-webkit-scrollbar-track {
+  background: #1E1E1E;
+  border-radius: 2px;
+}
+
+.recipe-overlay::-webkit-scrollbar-thumb {
+  background: #FF7A00;
+  border-radius: 2px;
+}
+
+/* Loading Spinner */
+.spinner {
+  border: 3px solid rgba(255, 122, 0, 0.1);
+  border-top: 3px solid #FF7A00;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Touch Feedback */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 122, 0, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.touch-feedback:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Skeleton Loading */
+.skeleton {
+  @apply animate-pulse bg-dark-light rounded;
+}
+
+/* Toast Notifications Custom Styles */
+.toast-success {
+  @apply bg-primary text-white;
+}
+
+.toast-error {
+  @apply bg-red-500 text-white;
+}
+
+/* iOS Safe Area Support */
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  
+  .safe-top {
+    padding-top: max(20px, env(safe-area-inset-top));
+  }
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid #FF7A00;
+  outline-offset: 2px;
+}
+
+/* Image loading placeholder */
+img[src=""], img:not([src]) {
+  @apply bg-dark-light;
+}
