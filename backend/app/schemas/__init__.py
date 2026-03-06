@@ -17,7 +17,7 @@ from app.schemas.recipe import (
     RecipeList,
     RecipeDetail
 )
-from app.schemas.video import (
+from app.schemas.videos import (
     VideoBase,
     VideoCreate,
     VideoResponse

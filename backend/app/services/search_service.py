@@ -1,6 +1,6 @@
 from typing import Optional, List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_, func
+from sqlalchemy import select, or_, and_, func, String
 from app.models.recipe import Recipe
 from app.models.user import User
 from app.schemas.recipe import RecipeSearchFilters, DifficultyLevel, DietaryPreference

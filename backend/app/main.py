@@ -1,121 +1,125 @@
-from fastapi import FastAPI, Request, status
+"""Main application entry point"""
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-import logging
-from app.core.config import settings
-from app.core.middleware import RateLimitMiddleware, LoggingMiddleware
-from app.database.session import init_db, close_db
-from app.routes import api_router
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO if not settings.DEBUG else logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+from app.core.config import settings
+from app.database.session import init_db, close_db
+
+# Import routes (we'll handle errors if they don't exist)
+try:
+    from app.routes import auth, user, recipes, engagement, search, recomendation, videos
+    ROUTES_AVAILABLE = True
+except ImportError as e:
+    ROUTES_AVAILABLE = False
+    print(f"Warning: Some route modules not found: {e}. App will start with limited functionality.")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Application lifespan events
+    Lifespan context manager for startup and shutdown events
     """
     # Startup
-    logger.info("Starting up Feastro API...")
-    
-    # Initialize database (optional - use Alembic migrations instead)
-    # await init_db()
-    
-    logger.info("Feastro API started successfully")
-    
+    print("Starting up...")
+    await init_db()
+    print("Database initialized!")
     yield
-    
     # Shutdown
-    logger.info("Shutting down Feastro API...")
+    print("Shutting down...")
     await close_db()
-    logger.info("Feastro API shut down successfully")
+    print("Database connections closed!")
 
 
-# Create FastAPI application
+# Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Feastro - Short-form food content platform API",
-    docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/redoc" if settings.DEBUG else None,
-    lifespan=lifespan
+    debug=settings.DEBUG,
+    lifespan=lifespan,
 )
 
-# CORS middleware
+# Configure CORS
+origins = settings.ALLOWED_ORIGINS.split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins_list,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-Process-Time"]
 )
-
-# Custom middleware
-app.add_middleware(LoggingMiddleware)
-app.add_middleware(RateLimitMiddleware, rate_limit=settings.RATE_LIMIT_PER_MINUTE)
-
-
-# Exception handlers
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    """
-    Global exception handler
-    """
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "detail": "Internal server error" if not settings.DEBUG else str(exc)
-        }
-    )
 
 
 # Health check endpoint
-@app.get("/health", tags=["Health"])
+@app.get("/health")
 async def health_check():
-    """
-    Health check endpoint
-    """
+    """Health check endpoint"""
     return {
         "status": "healthy",
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "environment": settings.ENVIRONMENT
+        "environment": settings.ENVIRONMENT,
     }
 
 
 # Root endpoint
-@app.get("/", tags=["Root"])
+@app.get("/")
 async def root():
-    """
-    Root endpoint
-    """
+    """Root endpoint"""
     return {
-        "message": "Welcome to Feastro API",
+        "message": f"Welcome to {settings.APP_NAME} API",
         "version": settings.APP_VERSION,
-        "docs": "/docs" if settings.DEBUG else "Documentation disabled in production"
+        "docs": "/docs",
+        "health": "/health",
     }
 
 
-# Include API router
-app.include_router(api_router, prefix="/api/v1")
+# Include routers if available
+if ROUTES_AVAILABLE:
+    try:
+        app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+    except:
+        pass
+    
+    try:
+        app.include_router(user.router, prefix="/api/v1/users", tags=["Users"])
+    except:
+        pass
+    
+    try:
+        app.include_router(recipes.router, prefix="/api/v1/recipes", tags=["Recipes"])
+    except:
+        pass
+    
+    try:
+        app.include_router(engagement.router, prefix="/api/v1/engagement", tags=["Engagement"])
+    except:
+        pass
+    
+    try:
+        app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
+    except:
+        pass
+    
+    try:
+        app.include_router(recomendation.router, prefix="/api/v1/recommendations", tags=["Recommendations"])
+    except:
+        pass
+    
+    try:
+        app.include_router(videos.router, prefix="/api/v1/videos", tags=["Videos"])
+    except:
+        pass
 
 
 if __name__ == "__main__":
     import uvicorn
-    
     uvicorn.run(
         "app.main:app",
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
-        log_level="info"
     )
+
+

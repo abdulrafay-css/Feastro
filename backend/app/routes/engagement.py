@@ -16,7 +16,7 @@ from app.schemas.engagement import (
 )
 from app.schemas.recipe import RecipeList
 from app.services.engagement_service import EngagementService
-from app.services.recommendation_service import RecommendationService
+from app.services.recomendation_service import RecommendationService
 from sqlalchemy import select
 
 router = APIRouter()

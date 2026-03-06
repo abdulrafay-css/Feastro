@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 from app.models.video import Video
-from app.schemas.video import VideoCreate, VideoUpdate
+from app.schemas.videos import VideoCreate, VideoUpdate
 
 
 class VideoService:

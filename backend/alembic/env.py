@@ -13,6 +13,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.core.config import settings
 from app.database.base import Base
 
+# Import all models so Alembic can detect them
+from app.models.user import User
+from app.models.recipe import Recipe
+from app.models.video import Video
+from app.models.engagement import Like, Save
+from app.models.follower import Follower
+from app.models.recommendation import EngagementLog, RecommendationWeight
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

@@ -5,7 +5,7 @@ from app.database.session import get_db
 from app.core.dependencies import get_current_active_user
 from app.models.user import User
 from app.schemas.recipe import RecipeList
-from app.services.recommendation_service import RecommendationService
+from app.services.recomendation_service import RecommendationService
 from sqlalchemy import select
 from app.models.user import User as UserModel
 

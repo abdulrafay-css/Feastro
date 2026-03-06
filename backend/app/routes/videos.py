@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 from app.core.dependencies import get_current_active_user
 from app.models.user import User
-from app.schemas.video import VideoCreate, VideoResponse, VideoUpdate
+from app.schemas.videos import VideoCreate, VideoResponse, VideoUpdate
 from app.services.video_service import VideoService
 
 router = APIRouter()
