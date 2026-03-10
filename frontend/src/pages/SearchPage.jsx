@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { SearchBar } from '@components/search/SearchBar';
 import { FilterPanel } from '@components/search/FilterPanel';
@@ -152,7 +152,7 @@ const TrendingSection = () => {
   const [loading, setLoading] = useState(true);
 
   // Fetch trending recipes
-  useState(() => {
+  useEffect(() => {
     const fetchTrending = async () => {
       try {
         const recipes = await recipeService.getTrendingRecipes(12);

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -46,13 +46,15 @@ class RecipeBase(BaseModel):
 class RecipeCreate(RecipeBase):
     video_url: Optional[str] = None
     
-    @validator('ingredients')
+    @field_validator('ingredients')
+    @classmethod
     def validate_ingredients(cls, v):
         if len(v) < 1:
             raise ValueError('At least one ingredient is required')
         return v
     
-    @validator('instructions')
+    @field_validator('instructions')
+    @classmethod
     def validate_instructions(cls, v):
         if len(v) < 1:
             raise ValueError('At least one instruction step is required')

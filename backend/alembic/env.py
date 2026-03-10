@@ -26,7 +26,11 @@ from app.models.recommendation import EngagementLog, RecommendationWeight
 config = context.config
 
 # Set the sqlalchemy.url from environment variable
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Convert async driver URLs to sync equivalents for Alembic
+db_url = settings.DATABASE_URL
+db_url = db_url.replace("sqlite+aiosqlite", "sqlite")
+db_url = db_url.replace("postgresql+asyncpg", "postgresql")
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

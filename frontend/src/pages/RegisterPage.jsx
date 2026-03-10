@@ -13,10 +13,10 @@ export const RegisterPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useAuth();
 
-  // Redirect to feed if already authenticated
+  // Redirect to home if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/feed');
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
 

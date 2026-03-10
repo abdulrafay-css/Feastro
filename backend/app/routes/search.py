@@ -76,7 +76,7 @@ async def search_users(
     users, total = await SearchService.search_users(db, query, skip, limit)
     
     return {
-        "users": [UserPublic.from_orm(user) for user in users],
+        "users": [UserPublic.model_validate(user) for user in users],
         "total": total,
         "page": skip // limit + 1,
         "page_size": limit,

@@ -49,7 +49,7 @@ class EngagementService:
         await db.commit()
         await db.refresh(new_like)
         
-        return LikeResponse.from_orm(new_like)
+        return LikeResponse.model_validate(new_like)
     
     @staticmethod
     async def unlike_recipe(db: AsyncSession, user_id: int, recipe_id: int) -> bool:
@@ -118,7 +118,7 @@ class EngagementService:
         await db.commit()
         await db.refresh(new_save)
         
-        return SaveResponse.from_orm(new_save)
+        return SaveResponse.model_validate(new_save)
     
     @staticmethod
     async def unsave_recipe(db: AsyncSession, user_id: int, recipe_id: int) -> bool:

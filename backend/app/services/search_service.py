@@ -1,6 +1,6 @@
 from typing import Optional, List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_, func, String
+from sqlalchemy import select, or_, and_, func, String, cast
 from app.models.recipe import Recipe
 from app.models.user import User
 from app.schemas.recipe import RecipeSearchFilters, DifficultyLevel, DietaryPreference
@@ -27,20 +27,13 @@ class SearchService:
         # Text search (title, description, tags)
         if filters.query:
             search_term = f"%{filters.query.lower()}%"
-            query = query.where(
-                or_(
-                    func.lower(Recipe.title).like(search_term),
-                    func.lower(Recipe.description).like(search_term),
-                    Recipe.tags.op('@>')(f'["{filters.query.lower()}"]')
-                )
+            text_filter = or_(
+                func.lower(Recipe.title).like(search_term),
+                func.lower(Recipe.description).like(search_term),
+                func.lower(cast(Recipe.tags, String)).like(search_term)
             )
-            count_query = count_query.where(
-                or_(
-                    func.lower(Recipe.title).like(search_term),
-                    func.lower(Recipe.description).like(search_term),
-                    Recipe.tags.op('@>')(f'["{filters.query.lower()}"]')
-                )
-            )
+            query = query.where(text_filter)
+            count_query = count_query.where(text_filter)
         
         # Difficulty filter
         if filters.difficulty:
@@ -60,8 +53,9 @@ class SearchService:
         # Tags filter
         if filters.tags:
             for tag in filters.tags:
-                query = query.where(Recipe.tags.op('@>')(f'["{tag.lower()}"]'))
-                count_query = count_query.where(Recipe.tags.op('@>')(f'["{tag.lower()}"]'))
+                tag_filter = func.lower(cast(Recipe.tags, String)).like(f"%{tag.lower()}%")
+                query = query.where(tag_filter)
+                count_query = count_query.where(tag_filter)
         
         # Ingredient search (search in JSON ingredients)
         if filters.ingredient:

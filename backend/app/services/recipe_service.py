@@ -25,8 +25,8 @@ class RecipeService:
         Create a new recipe
         """
         # Convert Pydantic models to dict for JSON storage
-        ingredients_dict = [ing.dict() for ing in recipe_data.ingredients]
-        instructions_dict = [inst.dict() for inst in recipe_data.instructions]
+        ingredients_dict = [ing.model_dump() for ing in recipe_data.ingredients]
+        instructions_dict = [inst.model_dump() for inst in recipe_data.instructions]
         
         # Create recipe
         new_recipe = Recipe(
@@ -137,9 +137,9 @@ class RecipeService:
         if recipe_data.description is not None:
             recipe.description = recipe_data.description
         if recipe_data.ingredients is not None:
-            recipe.ingredients = [ing.dict() for ing in recipe_data.ingredients]
+            recipe.ingredients = [ing.model_dump() for ing in recipe_data.ingredients]
         if recipe_data.instructions is not None:
-            recipe.instructions = [inst.dict() for inst in recipe_data.instructions]
+            recipe.instructions = [inst.model_dump() for inst in recipe_data.instructions]
         if recipe_data.cooking_time is not None:
             recipe.cooking_time = recipe_data.cooking_time
         if recipe_data.servings is not None:

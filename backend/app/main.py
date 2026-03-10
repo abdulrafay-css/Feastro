@@ -79,37 +79,37 @@ async def root():
 if ROUTES_AVAILABLE:
     try:
         app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-    except:
+    except Exception:
         pass
     
     try:
         app.include_router(user.router, prefix="/api/v1/users", tags=["Users"])
-    except:
+    except Exception:
         pass
     
     try:
         app.include_router(recipes.router, prefix="/api/v1/recipes", tags=["Recipes"])
-    except:
+    except Exception:
         pass
     
     try:
         app.include_router(engagement.router, prefix="/api/v1/engagement", tags=["Engagement"])
-    except:
+    except Exception:
         pass
     
     try:
         app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
-    except:
+    except Exception:
         pass
     
     try:
         app.include_router(recomendation.router, prefix="/api/v1/recommendations", tags=["Recommendations"])
-    except:
+    except Exception:
         pass
     
     try:
         app.include_router(videos.router, prefix="/api/v1/videos", tags=["Videos"])
-    except:
+    except Exception:
         pass
 
 

@@ -7,7 +7,6 @@ from app.models.user import User
 from app.schemas.recipe import RecipeList
 from app.services.recomendation_service import RecommendationService
 from sqlalchemy import select
-from app.models.user import User as UserModel
 
 router = APIRouter()
 
@@ -35,7 +34,7 @@ async def get_personalized_feed(
     recipe_list = []
     for recipe in recipes:
         # Get author username
-        author_result = await db.execute(select(UserModel).where(UserModel.id == recipe.author_id))
+        author_result = await db.execute(select(User).where(User.id == recipe.author_id))
         author = author_result.scalar_one_or_none()
         
         recipe_list.append({
@@ -74,7 +73,7 @@ async def get_similar_recipes(
     recipe_list = []
     for recipe in recipes:
         # Get author username
-        author_result = await db.execute(select(UserModel).where(UserModel.id == recipe.author_id))
+        author_result = await db.execute(select(User).where(User.id == recipe.author_id))
         author = author_result.scalar_one_or_none()
         
         recipe_list.append(RecipeList(

@@ -131,6 +131,8 @@ export const AuthProvider = ({ children }) => {
    */
   const updateUser = async (userData) => {
     try {
+      const { userService } = await import('@services/userService');
+      await userService.updateCurrentUser(userData);
       const updatedUser = await authService.getCurrentUser();
       setUser(updatedUser);
       storageService.setUser(updatedUser);
