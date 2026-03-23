@@ -143,7 +143,7 @@ const ProfileHeader = ({
         {Object.keys(social_links).length > 0 && (
           <div className="flex flex-wrap gap-3">
             {social_links.website && (
-              
+              <a
                 href={social_links.website}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -156,7 +156,7 @@ const ProfileHeader = ({
               </a>
             )}
             {social_links.instagram && (
-              
+              <a
                 href={`https://instagram.com/${social_links.instagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -167,7 +167,7 @@ const ProfileHeader = ({
               </a>
             )}
             {social_links.youtube && (
-              
+              <a
                 href={social_links.youtube}
                 target="_blank"
                 rel="noopener noreferrer"

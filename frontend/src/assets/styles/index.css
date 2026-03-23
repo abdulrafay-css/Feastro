@@ -1,88 +1,104 @@
+/**
+ * Global Styles
+ * Tailwind base, components, and utilities + custom styles
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Global Styles */
+/* ============================================
+   ROOT VARIABLES (from designTokens.js)
+   ============================================ */
+:root {
+  /* Colors */
+  --color-primary: #FF7A00;
+  --color-primary-light: #FF9433;
+  --color-primary-dark: #E66D00;
+  
+  --color-bg-primary: #0A0A0A;
+  --color-bg-secondary: #141414;
+  --color-bg-tertiary: #1F1F1F;
+  
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  @apply bg-dark text-white font-body;
+html {
+  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: white;
   overflow-x: hidden;
 }
 
+#root {
+  min-height: 100vh;
+}
+
+/* ============================================
+   SCROLLBAR STYLES
+   ============================================ */
 /* Hide scrollbar but keep functionality */
-* {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-*::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-/* Custom Utilities */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .touch-manipulation {
-    touch-action: manipulation;
-  }
-  
-  .no-tap-highlight {
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  .safe-area-inset-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .safe-area-inset-top {
-    padding-top: env(safe-area-inset-top);
-  }
+/* Custom scrollbar for main content */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Component Styles */
-@layer components {
-  .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200 active:scale-95 no-tap-highlight;
-  }
-  
-  .btn-secondary {
-    @apply bg-dark-light hover:bg-dark-lighter text-white font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200 active:scale-95 no-tap-highlight;
-  }
-  
-  .btn-outline {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white font-headline font-semibold py-3 px-6 rounded-lg transition-all duration-200 active:scale-95 no-tap-highlight;
-  }
-  
-  .input-field {
-    @apply bg-dark-light border border-dark-lighter text-white placeholder-gray rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
-  }
-  
-  .card {
-    @apply bg-dark-lighter rounded-xl p-4 border border-dark-light;
-  }
-  
-  .overlay-gradient {
-    background: linear-gradient(to top, rgba(18, 18, 18, 0.9) 0%, rgba(18, 18, 18, 0.6) 30%, transparent 100%);
-  }
-  
-  .shimmer {
-    background: linear-gradient(90deg, #1E1E1E 0%, #2A2A2A 50%, #1E1E1E 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Animations */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 122, 0, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 122, 0, 0.5);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -92,145 +108,147 @@ body {
   }
 }
 
-/* Video Player Styles */
-.video-container {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
 }
 
-.video-player {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Recipe Overlay Styles */
-.recipe-overlay {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, #121212 70%, rgba(18, 18, 18, 0.95) 100%);
-  border-radius: 24px 24px 0 0;
-  max-height: 80vh;
-  overflow-y: auto;
-  z-index: 50;
-}
-
-/* Custom Scrollbar for Recipe Overlay */
-.recipe-overlay::-webkit-scrollbar {
-  width: 4px;
-  display: block;
-}
-
-.recipe-overlay::-webkit-scrollbar-track {
-  background: #1E1E1E;
-  border-radius: 2px;
-}
-
-.recipe-overlay::-webkit-scrollbar-thumb {
-  background: #FF7A00;
-  border-radius: 2px;
-}
-
-/* Loading Spinner */
-.spinner {
-  border: 3px solid rgba(255, 122, 0, 0.1);
-  border-top: 3px solid #FF7A00;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Touch Feedback */
-.touch-feedback {
-  position: relative;
-  overflow: hidden;
-}
-
-.touch-feedback::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 122, 0, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.touch-feedback:active::after {
-  width: 200px;
-  height: 200px;
-}
-
-/* Skeleton Loading */
-.skeleton {
-  @apply animate-pulse bg-dark-light rounded;
-}
-
-/* Toast Notifications Custom Styles */
-.toast-success {
-  @apply bg-primary text-white;
-}
-
-.toast-error {
-  @apply bg-red-500 text-white;
-}
-
-/* iOS Safe Area Support */
-@supports (padding: max(0px)) {
-  .safe-bottom {
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
   }
-  
-  .safe-top {
-    padding-top: max(20px, env(safe-area-inset-top));
+  50% {
+    opacity: 0.5;
   }
 }
 
-/* Prevent text selection on interactive elements */
-.no-select {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
+/* ============================================
+   SAFE AREA (for mobile notches)
+   ============================================ */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Focus visible for accessibility */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ============================================
+   SELECTION
+   ============================================ */
+::selection {
+  background-color: rgba(255, 122, 0, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: rgba(255, 122, 0, 0.3);
+  color: white;
+}
+
+/* ============================================
+   FOCUS STYLES
+   ============================================ */
 :focus-visible {
-  outline: 2px solid #FF7A00;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* Image loading placeholder */
-img[src=""], img:not([src]) {
-  @apply bg-dark-light;
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
-/* ... existing styles ... */
-
-/* Hide scrollbar for horizontal scroll */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* ============================================
+   CUSTOM UTILITIES
+   ============================================ */
+.text-gradient {
+  background: linear-gradient(to right, #FF7A00, #FF9433);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+.bg-gradient-primary {
+  background: linear-gradient(to right, #FF7A00, #FF9433);
+}
+
+.shadow-glow-orange {
+  box-shadow: 0 0 20px rgba(255, 122, 0, 0.3);
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+@media (max-width: 767px) {
+  .mobile-only {
+    display: block;
+  }
+  .desktop-only {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  body {
+    background-color: white;
+    color: black;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }

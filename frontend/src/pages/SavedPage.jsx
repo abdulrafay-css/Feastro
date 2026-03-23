@@ -9,7 +9,7 @@ import CollectionGrid from '../components/saved/CollectionGrid';
 import SavedRecipeCard from '../components/saved/SavedRecipeCard';
 import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
-import Button from '../common/Button';
+import Button from '../components/common/Button';
 import { useToast } from '../context/ToastContext';
 import FeedModal from '../components/feed/FeedModal';
 
@@ -18,7 +18,7 @@ const SavedPage = () => {
   const [view, setView] = useState('collections'); // 'collections' or 'all-recipes'
   const [collections, setCollections] = useState([]);
   const [savedRecipes, setSavedRecipes] = useState([]);
-  const [selectedCollection, setSelectedCollection] = useState(null);
+  const [, setSelectedCollection] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [newCollectionDescription, setNewCollectionDescription] = useState('');

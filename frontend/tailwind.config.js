@@ -1,3 +1,8 @@
+/**
+ * Tailwind CSS Configuration
+ * Custom theme extending Tailwind defaults
+ */
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -7,54 +12,99 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Primary brand color
         primary: {
           DEFAULT: '#FF7A00',
-          light: '#FF9933',
-          dark: '#CC6200',
+          light: '#FF9433',
+          dark: '#E66D00',
         },
-        accent: {
-          DEFAULT: '#FFEA00',
-          light: '#FFF033',
-          dark: '#CCB800',
+        // Background colors
+        bg: {
+          primary: '#0A0A0A',
+          secondary: '#141414',
+          tertiary: '#1F1F1F',
         },
-        dark: {
-          DEFAULT: '#121212',
-          lighter: '#1E1E1E',
-          light: '#2A2A2A',
+        // Difficulty colors
+        difficulty: {
+          easy: '#10B981',
+          medium: '#F59E0B',
+          hard: '#EF4444',
         },
-        gray: {
-          DEFAULT: '#8E8E93',
-          light: '#C7C7CC',
-        }
       },
       fontFamily: {
-        headline: ['Poppins', 'sans-serif'],
-        body: ['PT Sans', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+      },
+      fontSize: {
+        'xs': '0.75rem',      // 12px
+        'sm': '0.875rem',     // 14px
+        'base': '1rem',       // 16px
+        'lg': '1.125rem',     // 18px
+        'xl': '1.25rem',      // 20px
+        '2xl': '1.5rem',      // 24px
+        '3xl': '1.875rem',    // 30px
+        '4xl': '2.25rem',     // 36px
+        '5xl': '3rem',        // 48px
+        '6xl': '3.75rem',     // 60px
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '112': '28rem',
+        '128': '32rem',
+      },
+      borderRadius: {
+        'xs': '0.25rem',
+        'sm': '0.375rem',
+        'DEFAULT': '0.5rem',
+        'md': '0.75rem',
+        'lg': '1rem',
+        'xl': '1.5rem',
+        '2xl': '2rem',
+        '3xl': '3rem',
+      },
+      boxShadow: {
+        'glow-sm': '0 0 10px rgba(255, 122, 0, 0.2)',
+        'glow': '0 0 20px rgba(255, 122, 0, 0.3)',
+        'glow-lg': '0 0 30px rgba(255, 122, 0, 0.4)',
+        'inner-glow': 'inset 0 0 20px rgba(255, 122, 0, 0.1)',
+      },
+      backgroundImage: {
+        'gradient-primary': 'linear-gradient(to right, #FF7A00, #FF9433)',
+        'gradient-dark': 'linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.9))',
       },
       animation: {
-        'slide-up': 'slideUp 0.3s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
-        'fade-in': 'fadeIn 0.2s ease-out',
-        'scale-in': 'scaleIn 0.2s ease-out',
+        'spin-slow': 'spin 3s linear infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'shimmer': 'shimmer 2s infinite',
       },
       keyframes: {
-        slideUp: {
-          '0%': { transform: 'translateY(100%)' },
-          '100%': { transform: 'translateY(0)' },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
-        slideDown: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(0)' },
-        },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        scaleIn: {
-          '0%': { transform: 'scale(0.9)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
+      },
+      zIndex: {
+        '60': '60',
+        '70': '70',
+        '80': '80',
+        '90': '90',
+        '100': '100',
+      },
+      transitionDuration: {
+        '400': '400ms',
+        '600': '600ms',
+        '800': '800ms',
+        '900': '900ms',
+      },
+      screens: {
+        'xs': '475px',
+        '3xl': '1920px',
+      },
+      aspectRatio: {
+        '3/4': '3 / 4',
+        '4/3': '4 / 3',
+        '9/16': '9 / 16',
+        '16/9': '16 / 9',
       },
     },
   },
