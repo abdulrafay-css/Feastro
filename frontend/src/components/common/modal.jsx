@@ -1,98 +1,109 @@
-import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { IoClose } from 'react-icons/io5';
-import { useClickOutside } from '@hooks/useClickOutside';
-
 /**
- * Modal component
+ * Modal Dialog Component
+ * Customizable modal with animations
  */
-export const Modal = ({
+
+import { motion, AnimatePresence } from 'framer-motion';
+import { modalBackdrop, modalContent } from '../../utils/animations';
+import { useEffect } from 'react';
+
+const Modal = ({ 
   isOpen,
   onClose,
-  title,
   children,
-  size = 'medium',
+  title,
+  size = 'md',
   showCloseButton = true,
-  closeOnOutsideClick = true,
-  closeOnEscape = true,
+  closeOnBackdropClick = true,
+  className = '',
 }) => {
-  const modalRef = useClickOutside(() => {
-    if (closeOnOutsideClick) {
-      onClose();
-    }
-  });
-
+  // Sizes
   const sizes = {
-    small: 'max-w-md',
-    medium: 'max-w-2xl',
-    large: 'max-w-4xl',
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
     full: 'max-w-full mx-4',
   };
-
-  // Handle escape key
+  
+  // Lock body scroll when modal is open
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && closeOnEscape) {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+  
+  // Handle ESC key
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose, closeOnEscape]);
-
+    
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
+  
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <>
           {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black bg-opacity-80"
+            {...modalBackdrop}
+            onClick={closeOnBackdropClick ? onClose : undefined}
+            className="fixed inset-0 bg-black/95 z-[1040] backdrop-blur-sm"
           />
-
-          {/* Modal */}
-          <motion.div
-            ref={modalRef}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className={`relative bg-dark-lighter rounded-2xl shadow-2xl ${sizes[size]} w-full max-h-[90vh] overflow-hidden`}
-          >
-            {/* Header */}
-            {(title || showCloseButton) && (
-              <div className="flex items-center justify-between p-6 border-b border-dark-light">
-                {title && (
-                  <h2 className="text-2xl font-headline font-bold">{title}</h2>
-                )}
-                
-                {showCloseButton && (
-                  <button
-                    onClick={onClose}
-                    className="p-2 hover:bg-dark-light rounded-lg transition-colors"
-                  >
-                    <IoClose size={24} />
-                  </button>
-                )}
+          
+          {/* Modal Container */}
+          <div className="fixed inset-0 flex items-center justify-center z-[1050] p-4 overflow-y-auto">
+            <motion.div
+              {...modalContent}
+              className={`
+                bg-bg-secondary rounded-2xl w-full ${sizes[size]}
+                border border-white/10 shadow-2xl
+                ${className}
+              `}
+            >
+              {/* Header */}
+              {(title || showCloseButton) && (
+                <div className="flex justify-between items-center p-6 border-b border-white/10">
+                  {title && (
+                    <h2 className="text-xl font-bold text-white">{title}</h2>
+                  )}
+                  
+                  {showCloseButton && (
+                    <button
+                      onClick={onClose}
+                      className="text-white/50 hover:text-white transition-colors ml-auto"
+                      aria-label="Close modal"
+                    >
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
+              
+              {/* Content */}
+              <div className="p-6">
+                {children}
               </div>
-            )}
-
-            {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-              {children}
-            </div>
-          </motion.div>
-        </div>
+            </motion.div>
+          </div>
+        </>
       )}
     </AnimatePresence>
   );
 };
+
+export default Modal;

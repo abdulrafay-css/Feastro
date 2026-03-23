@@ -1,183 +1,172 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Navigate } from 'react-router-dom';
-import { SearchBar } from '@components/search/SearchBar';
-import { FilterPanel } from '@components/search/FilterPanel';
-import { SearchResults } from '@components/search/SearchResults';
-import { useAuth } from '@hooks/useAuth';
-import { useInfiniteScroll } from '@hooks/useInfiniteScroll';
-import { recipeService } from '@services/recipeService';
-import { Loader } from '@components/common/Loader';
-
 /**
  * Search Page
+ * Search with filters and results
  */
-export const SearchPage = () => {
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({});
-  const [activeSearch, setActiveSearch] = useState(false);
 
-  // Fetch function for search results
-  const fetchSearchResults = useCallback(
-    async (page, pageSize) => {
-      const searchFilters = {
-        query: searchQuery,
-        ...filters,
-      };
+import { useState } from 'react';
+import PageLayout from '../components/layout/PageLayout';
+import SearchBar from '../components/search/SearchBar';
+import FilterPanel from '../components/search/FilterPanel';
+import FilterChips from '../components/search/FilterChips';
+import SearchResults from '../components/search/SearchResults';
+import SortDropdown from '../components/search/SortDropdown';
+import IconButton from '../components/common/IconButton';
+import FeedModal from '../components/feed/FeedModal';
 
-      const response = await recipeService.searchRecipes(searchFilters, page, pageSize);
-      return response;
-    },
-    [searchQuery, filters]
-  );
-
-  // Infinite scroll hook
-  const {
-    data: recipes,
-    loading,
-    error,
-    hasMore,
-    refresh,
-    observerRef,
-  } = useInfiniteScroll(fetchSearchResults, {
-    pageSize: 20,
-    enabled: activeSearch,
+const SearchPage = () => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    difficulty: [],
+    cookingTime: null,
+    dietary: [],
+    cuisine: [],
   });
+  const [sortBy, setSortBy] = useState('relevance');
+  const [feedModalOpen, setFeedModalOpen] = useState(false);
+  const [selectedRecipeIndex, setSelectedRecipeIndex] = useState(0);
 
-  /**
-   * Handle search query change
-   */
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    setActiveSearch(!!query || Object.keys(filters).length > 0);
-    refresh();
+  const handleSearch = async (searchQuery) => {
+    setQuery(searchQuery);
+    setLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      const mockResults = Array(8).fill(0).map((_, i) => ({
+        id: `search-${i}`,
+        title: `${searchQuery} Recipe ${i + 1}`,
+        thumbnail: `https://picsum.photos/seed/search${i}/400/600`,
+        creator: {
+          name: `Chef ${i + 1}`,
+          username: `chef${i + 1}`,
+          avatar: `https://i.pravatar.cc/150?img=${i + 40}`,
+        },
+        cooking_time: 30,
+        difficulty: ['easy', 'medium', 'hard'][i % 3],
+        likes_count: 1000 + (i * 100),
+        saves_count: 500 + (i * 50),
+        views_count: 5000,
+        video_url: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      }));
+      setResults(mockResults);
+      setLoading(false);
+    }, 800);
   };
 
-  /**
-   * Handle filter apply
-   */
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
-    setActiveSearch(!!searchQuery || Object.keys(newFilters).length > 0);
-    refresh();
+    // Re-search with filters
+    if (query) {
+      handleSearch(query);
+    }
   };
 
-  // Auth loading state
-  if (authLoading) {
-    return <Loader fullScreen />;
-  }
+  const handleRemoveFilter = (category, value) => {
+    const newFilters = { ...filters };
+    if (category === 'cookingTime') {
+      newFilters.cookingTime = null;
+    } else {
+      newFilters[category] = newFilters[category].filter(v => v !== value);
+    }
+    setFilters(newFilters);
+    handleApplyFilters(newFilters);
+  };
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  const handleClearAllFilters = () => {
+    const emptyFilters = {
+      difficulty: [],
+      cookingTime: null,
+      dietary: [],
+      cuisine: [],
+    };
+    setFilters(emptyFilters);
+    handleApplyFilters(emptyFilters);
+  };
+
+  const handleSort = (newSortBy) => {
+    setSortBy(newSortBy);
+    // Re-sort results
+    console.log('Sorting by:', newSortBy);
+  };
+
+  const handleRecipeClick = (recipe) => {
+    const index = results.findIndex(r => r.id === recipe.id);
+    setSelectedRecipeIndex(index);
+    setFeedModalOpen(true);
+  };
 
   return (
-    <div className="min-h-screen bg-dark">
-      {/* Search Header */}
-      <div className="sticky top-0 bg-dark-lighter border-b border-dark-light z-10 safe-top">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* Search Bar */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1">
-              <SearchBar
-                onSearch={handleSearch}
-                placeholder="Search recipes, ingredients..."
-                autoFocus
-              />
-            </div>
-            <FilterPanel
-              onApplyFilters={handleApplyFilters}
-              initialFilters={filters}
+    <PageLayout
+      title="Search"
+      headerActions={
+        <IconButton
+          variant="ghost"
+          onClick={() => setShowFilters(true)}
+          icon={
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+          }
+        />
+      }
+    >
+      <div className="space-y-6">
+        {/* Search Bar */}
+        <SearchBar
+          onSearch={handleSearch}
+          onClear={() => {
+            setQuery('');
+            setResults([]);
+          }}
+        />
+
+        {/* Active Filters */}
+        <FilterChips
+          filters={filters}
+          onRemove={handleRemoveFilter}
+          onClearAll={handleClearAllFilters}
+        />
+
+        {/* Sort & Results Count */}
+        {results.length > 0 && (
+          <div className="flex justify-between items-center">
+            <p className="text-white/70 text-sm">
+              {results.length} results
+            </p>
+            <SortDropdown
+              onSort={handleSort}
+              defaultSort={sortBy}
             />
           </div>
-
-          {/* Active Filters Display */}
-          {Object.keys(filters).length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(filters).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="px-3 py-1 bg-primary bg-opacity-20 text-primary rounded-full text-sm flex items-center gap-2"
-                >
-                  <span className="capitalize">
-                    {key.replace('_', ' ')}: {value}
-                  </span>
-                  <button
-                    onClick={() => {
-                      const newFilters = { ...filters };
-                      delete newFilters[key];
-                      handleApplyFilters(newFilters);
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {!activeSearch ? (
-          // Trending/Suggestions when no search
-          <TrendingSection />
-        ) : (
-          // Search Results
-          <>
-            <SearchResults
-              results={recipes}
-              loading={loading}
-              error={error}
-              emptyMessage="No recipes found. Try different keywords or filters."
-            />
-
-            {/* Infinite Scroll Observer */}
-            {hasMore && <div ref={observerRef} className="h-20" />}
-          </>
         )}
+
+        {/* Search Results */}
+        <SearchResults
+          results={results}
+          query={query}
+          loading={loading}
+          onRecipeClick={handleRecipeClick}
+        />
       </div>
-    </div>
-  );
-};
 
-/**
- * Trending Section Component
- */
-const TrendingSection = () => {
-  const [trendingRecipes, setTrendingRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch trending recipes
-  useEffect(() => {
-    const fetchTrending = async () => {
-      try {
-        const recipes = await recipeService.getTrendingRecipes(12);
-        setTrendingRecipes(recipes);
-      } catch (error) {
-        console.error('Failed to fetch trending:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTrending();
-  }, []);
-
-  return (
-    <div>
-      <h2 className="text-2xl font-headline font-bold mb-6">
-        🔥 Trending Recipes
-      </h2>
-
-      <SearchResults
-        results={trendingRecipes}
-        loading={loading}
-        emptyMessage="No trending recipes available"
+      {/* Filter Panel */}
+      <FilterPanel
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={handleApplyFilters}
       />
-    </div>
+
+      {/* Feed Modal */}
+      <FeedModal
+        isOpen={feedModalOpen}
+        onClose={() => setFeedModalOpen(false)}
+        initialRecipes={results}
+        initialIndex={selectedRecipeIndex}
+      />
+    </PageLayout>
   );
 };
+
+export default SearchPage;

@@ -1,66 +1,79 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { IoMail, IoLockClosed, IoPerson, IoEye, IoEyeOff } from 'react-icons/io5';
-import { Button } from '@components/common/Button';
-import { Input } from '@components/common/Input';
-import { useAuth } from '@hooks/useAuth';
-import { validateEmail, validatePassword, validateUsername } from '@utils/validators';
-
 /**
  * Register Form Component
+ * Registration form with validation and password strength
  */
-export const RegisterForm = () => {
-  const navigate = useNavigate();
-  const { register } = useAuth();
 
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { fadeInUp } from '../../utils/animations';
+import Input from '../common/Input';
+import Button from '../common/Button';
+import { useToast } from '../../context/ToastContext';
+
+const RegisterForm = ({ 
+  onSubmit,
+  className = '',
+  ...props 
+}) => {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
-    email: '',
+    name: '',
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
+    agreeToTerms: false,
   });
-
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Handle input change
-   */
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: null,
-      }));
-    }
+  // Password strength calculator
+  const getPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+    return strength;
   };
 
-  /**
-   * Validate form
-   */
-  const validate = () => {
+  const passwordStrength = getPasswordStrength(formData.password);
+  const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+  const strengthColors = ['#EF4444', '#F59E0B', '#F59E0B', '#10B981', '#10B981'];
+
+  const validateForm = () => {
     const newErrors = {};
 
-    // Email validation
-    const emailError = validateEmail(formData.email);
-    if (emailError) newErrors.email = emailError;
+    // Name validation
+    if (!formData.name) {
+      newErrors.name = 'Name is required';
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
 
     // Username validation
-    const usernameError = validateUsername(formData.username);
-    if (usernameError) newErrors.username = usernameError;
+    if (!formData.username) {
+      newErrors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+    }
+
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
 
     // Password validation
-    const passwordError = validatePassword(formData.password);
-    if (passwordError) newErrors.password = passwordError;
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
@@ -69,178 +82,205 @@ export const RegisterForm = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    // Terms validation
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  /**
-   * Handle form submit
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validateForm()) {
+      showToast('Please fix the errors in the form', 'error');
+      return;
+    }
 
     setLoading(true);
-
     try {
-      await register({
-        email: formData.email,
-        username: formData.username,
-        password: formData.password,
-      });
-
-      navigate('/feed');
+      await onSubmit?.(formData);
+      showToast('Account created successfully! 🎉', 'success');
     } catch (error) {
-      setErrors({
-        submit: error.message || 'Registration failed. Please try again.',
-      });
+      showToast(error.message || 'Registration failed. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (field) => (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value,
+    }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: '',
+      }));
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Email Input */}
+    <motion.form
+      {...fadeInUp}
+      onSubmit={handleSubmit}
+      className={`w-full space-y-6 ${className}`}
+      {...props}
+    >
+      {/* Name Input */}
       <Input
-        label="Email"
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="your@email.com"
-        icon={<IoMail size={20} />}
-        error={errors.email}
-        autoComplete="email"
+        label="Full Name"
+        type="text"
+        placeholder="John Doe"
+        value={formData.name}
+        onChange={handleChange('name')}
+        error={errors.name}
+        icon={
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        }
+        required
+        disabled={loading}
       />
 
       {/* Username Input */}
       <Input
         label="Username"
         type="text"
-        name="username"
+        placeholder="johndoe"
         value={formData.username}
-        onChange={handleChange}
-        placeholder="Choose a username"
-        icon={<IoPerson size={20} />}
+        onChange={handleChange('username')}
         error={errors.username}
-        autoComplete="username"
+        helperText="Only letters, numbers, and underscores allowed"
+        icon={
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          </svg>
+        }
+        required
+        disabled={loading}
+      />
+
+      {/* Email Input */}
+      <Input
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        value={formData.email}
+        onChange={handleChange('email')}
+        error={errors.email}
+        icon={
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        }
+        required
+        disabled={loading}
       />
 
       {/* Password Input */}
-      <div className="relative">
+      <div>
         <Input
           label="Password"
-          type={showPassword ? 'text' : 'password'}
-          name="password"
+          type="password"
+          placeholder="••••••••"
           value={formData.password}
-          onChange={handleChange}
-          placeholder="Create a password"
-          icon={<IoLockClosed size={20} />}
+          onChange={handleChange('password')}
           error={errors.password}
-          autoComplete="new-password"
+          icon={
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          }
+          required
+          disabled={loading}
         />
 
-        {/* Toggle Password Visibility */}
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-4 top-[42px] text-gray hover:text-white transition-colors"
-        >
-          {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
-        </button>
+        {/* Password Strength Indicator */}
+        {formData.password && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-2"
+          >
+            <div className="flex gap-1 mb-1">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1 flex-1 rounded-full transition-all ${
+                    i < passwordStrength ? 'opacity-100' : 'opacity-20'
+                  }`}
+                  style={{
+                    backgroundColor: i < passwordStrength ? strengthColors[passwordStrength - 1] : '#666',
+                  }}
+                />
+              ))}
+            </div>
+            <p className="text-xs" style={{ color: strengthColors[passwordStrength - 1] || '#666' }}>
+              {passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : 'Enter a password'}
+            </p>
+          </motion.div>
+        )}
       </div>
 
       {/* Confirm Password Input */}
-      <div className="relative">
-        <Input
-          label="Confirm Password"
-          type={showConfirmPassword ? 'text' : 'password'}
-          name="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          placeholder="Confirm your password"
-          icon={<IoLockClosed size={20} />}
-          error={errors.confirmPassword}
-          autoComplete="new-password"
-        />
+      <Input
+        label="Confirm Password"
+        type="password"
+        placeholder="••••••••"
+        value={formData.confirmPassword}
+        onChange={handleChange('confirmPassword')}
+        error={errors.confirmPassword}
+        icon={
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        }
+        required
+        disabled={loading}
+      />
 
-        {/* Toggle Confirm Password Visibility */}
-        <button
-          type="button"
-          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-          className="absolute right-4 top-[42px] text-gray hover:text-white transition-colors"
-        >
-          {showConfirmPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
-        </button>
+      {/* Terms and Conditions */}
+      <div>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={formData.agreeToTerms}
+            onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
+            className="w-4 h-4 mt-0.5 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
+            disabled={loading}
+          />
+          <span className="text-sm text-white/80">
+            I agree to the{' '}
+            <a href="/terms" className="text-orange-400 hover:text-orange-300">
+              Terms and Conditions
+            </a>{' '}
+            and{' '}
+            <a href="/privacy" className="text-orange-400 hover:text-orange-300">
+              Privacy Policy
+            </a>
+          </span>
+        </label>
+        {errors.agreeToTerms && (
+          <p className="mt-1 text-sm text-red-400">{errors.agreeToTerms}</p>
+        )}
       </div>
-
-      {/* Password Requirements */}
-      <div className="p-4 bg-dark-light rounded-lg">
-        <p className="text-sm text-gray-light mb-2">Password must contain:</p>
-        <ul className="text-sm text-gray-light space-y-1">
-          <li className="flex items-center gap-2">
-            <span className={formData.password.length >= 8 ? 'text-green-500' : ''}>
-              {formData.password.length >= 8 ? '✓' : '○'}
-            </span>
-            At least 8 characters
-          </li>
-          <li className="flex items-center gap-2">
-            <span className={/[A-Z]/.test(formData.password) ? 'text-green-500' : ''}>
-              {/[A-Z]/.test(formData.password) ? '✓' : '○'}
-            </span>
-            One uppercase letter
-          </li>
-          <li className="flex items-center gap-2">
-            <span className={/[a-z]/.test(formData.password) ? 'text-green-500' : ''}>
-              {/[a-z]/.test(formData.password) ? '✓' : '○'}
-            </span>
-            One lowercase letter
-          </li>
-          <li className="flex items-center gap-2">
-            <span className={/\d/.test(formData.password) ? 'text-green-500' : ''}>
-              {/\d/.test(formData.password) ? '✓' : '○'}
-            </span>
-            One number
-          </li>
-        </ul>
-      </div>
-
-      {/* Submit Error */}
-      {errors.submit && (
-        <div className="p-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-lg">
-          <p className="text-sm text-red-500">{errors.submit}</p>
-        </div>
-      )}
 
       {/* Submit Button */}
-      <Button type="submit" variant="primary" fullWidth loading={loading}>
-        Create Account
+      <Button
+        type="submit"
+        fullWidth
+        loading={loading}
+      >
+        {loading ? 'Creating account...' : 'Create Account'}
       </Button>
-
-      {/* Terms */}
-      <p className="text-center text-xs text-gray-light">
-        By signing up, you agree to our{' '}
-        <Link to="/terms" className="text-primary hover:text-primary-light">
-          Terms of Service
-        </Link>{' '}
-        and{' '}
-        <Link to="/privacy" className="text-primary hover:text-primary-light">
-          Privacy Policy
-        </Link>
-      </p>
-
-      {/* Login Link */}
-      <p className="text-center text-sm text-gray-light">
-        Already have an account?{' '}
-        <Link
-          to="/login"
-          className="text-primary hover:text-primary-light font-semibold transition-colors"
-        >
-          Login
-        </Link>
-      </p>
-    </form>
+    </motion.form>
   );
 };
+
+export default RegisterForm;

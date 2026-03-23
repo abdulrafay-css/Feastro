@@ -1,236 +1,212 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { IoFunnel, IoClose } from 'react-icons/io5';
-import { Button } from '@components/common/Button';
-import {
-  DIFFICULTY_LEVELS,
-  DIFFICULTY_LABELS,
-  DIETARY_PREFERENCES,
-  DIETARY_LABELS,
-} from '@utils/constants';
-
 /**
  * Filter Panel Component
+ * Advanced filters for search
  */
-export const FilterPanel = ({ onApplyFilters, initialFilters = {} }) => {
-  const [isOpen, setIsOpen] = useState(false);
+
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { slideInRight } from '../../utils/animations';
+import Button from '../common/Button';
+import Chip from '../common/Chip';
+
+const FilterPanel = ({ 
+  onApply,
+  onClose,
+  isOpen = false,
+  className = '',
+  ...props 
+}) => {
   const [filters, setFilters] = useState({
-    difficulty: initialFilters.difficulty || null,
-    dietary_preference: initialFilters.dietary_preference || null,
-    max_cooking_time: initialFilters.max_cooking_time || null,
-    ingredient: initialFilters.ingredient || '',
+    difficulty: [],
+    cookingTime: null,
+    dietary: [],
+    cuisine: [],
   });
 
-  /**
-   * Handle filter change
-   */
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  const filterOptions = {
+    difficulty: [
+      { value: 'easy', label: 'Easy' },
+      { value: 'medium', label: 'Medium' },
+      { value: 'hard', label: 'Hard' },
+    ],
+    cookingTime: [
+      { value: '15', label: 'Under 15 min' },
+      { value: '30', label: 'Under 30 min' },
+      { value: '60', label: 'Under 1 hour' },
+      { value: '120', label: 'Over 1 hour' },
+    ],
+    dietary: [
+      { value: 'vegetarian', label: '🌱 Vegetarian' },
+      { value: 'vegan', label: '🥬 Vegan' },
+      { value: 'gluten-free', label: '🌾 Gluten-Free' },
+      { value: 'dairy-free', label: '🥛 Dairy-Free' },
+      { value: 'keto', label: '🥑 Keto' },
+      { value: 'paleo', label: '🥩 Paleo' },
+    ],
+    cuisine: [
+      { value: 'italian', label: '🇮🇹 Italian' },
+      { value: 'chinese', label: '🇨🇳 Chinese' },
+      { value: 'mexican', label: '🇲🇽 Mexican' },
+      { value: 'indian', label: '🇮🇳 Indian' },
+      { value: 'japanese', label: '🇯🇵 Japanese' },
+      { value: 'american', label: '🇺🇸 American' },
+      { value: 'french', label: '🇫🇷 French' },
+      { value: 'thai', label: '🇹🇭 Thai' },
+    ],
   };
 
-  /**
-   * Apply filters
-   */
+  const toggleFilter = (category, value) => {
+    if (category === 'cookingTime') {
+      setFilters(prev => ({
+        ...prev,
+        cookingTime: prev.cookingTime === value ? null : value,
+      }));
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [category]: prev[category].includes(value)
+          ? prev[category].filter(v => v !== value)
+          : [...prev[category], value],
+      }));
+    }
+  };
+
   const handleApply = () => {
-    // Remove null/empty values
-    const activeFilters = Object.entries(filters).reduce((acc, [key, value]) => {
-      if (value !== null && value !== '') {
-        acc[key] = value;
-      }
-      return acc;
-    }, {});
-
-    onApplyFilters(activeFilters);
-    setIsOpen(false);
+    onApply?.(filters);
+    onClose?.();
   };
 
-  /**
-   * Reset filters
-   */
-  const handleReset = () => {
+  const handleClear = () => {
     setFilters({
-      difficulty: null,
-      dietary_preference: null,
-      max_cooking_time: null,
-      ingredient: '',
+      difficulty: [],
+      cookingTime: null,
+      dietary: [],
+      cuisine: [],
     });
   };
 
-  /**
-   * Count active filters
-   */
-  const activeFilterCount = Object.values(filters).filter(
-    (value) => value !== null && value !== ''
-  ).length;
+  const activeFiltersCount = 
+    filters.difficulty.length + 
+    (filters.cookingTime ? 1 : 0) +
+    filters.dietary.length + 
+    filters.cuisine.length;
 
   return (
-    <>
-      {/* Filter Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="relative flex items-center gap-2 px-4 py-2 bg-dark-light hover:bg-dark-lighter rounded-full transition-colors"
-      >
-        <IoFunnel size={18} />
-        <span className="font-medium">Filters</span>
-        
-        {activeFilterCount > 0 && (
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center text-xs font-bold">
-            {activeFilterCount}
-          </div>
-        )}
-      </button>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 z-[1040]"
+          />
 
-      {/* Filter Panel Modal */}
-      <AnimatePresence>
-        {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black bg-opacity-80"
-            />
-
-            {/* Panel */}
-            <motion.div
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="relative bg-dark-lighter rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl max-h-[90vh] overflow-hidden"
-            >
+          {/* Panel */}
+          <motion.div
+            {...slideInRight}
+            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-bg-secondary border-l border-white/10 z-[1050] overflow-y-auto"
+            {...props}
+          >
+            <div className="p-6 space-y-6">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-dark-light">
-                <h2 className="text-2xl font-headline font-bold">Filters</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-white">Filters</h2>
                 <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-dark-light rounded-lg transition-colors"
+                  onClick={onClose}
+                  className="text-white/50 hover:text-white transition-colors"
                 >
-                  <IoClose size={24} />
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
 
-              {/* Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
-                {/* Difficulty Filter */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-headline font-semibold mb-3">Difficulty</h3>
-                  <div className="grid grid-cols-3 gap-3">
-                    {Object.values(DIFFICULTY_LEVELS).map((level) => (
-                      <button
-                        key={level}
-                        onClick={() =>
-                          handleFilterChange(
-                            'difficulty',
-                            filters.difficulty === level ? null : level
-                          )
-                        }
-                        className={`py-3 px-4 rounded-lg font-medium transition-all ${
-                          filters.difficulty === level
-                            ? 'bg-primary text-white'
-                            : 'bg-dark-light hover:bg-dark text-gray-light hover:text-white'
-                        }`}
-                      >
-                        {DIFFICULTY_LABELS[level]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Dietary Preference Filter */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-headline font-semibold mb-3">
-                    Dietary Preference
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {Object.entries(DIETARY_PREFERENCES)
-                      .filter(([key]) => key !== 'NONE')
-                      .map(([key, value]) => (
-                        <button
-                          key={value}
-                          onClick={() =>
-                            handleFilterChange(
-                              'dietary_preference',
-                              filters.dietary_preference === value ? null : value
-                            )
-                          }
-                          className={`py-3 px-4 rounded-lg font-medium transition-all ${
-                            filters.dietary_preference === value
-                              ? 'bg-primary text-white'
-                              : 'bg-dark-light hover:bg-dark text-gray-light hover:text-white'
-                          }`}
-                        >
-                          {DIETARY_LABELS[value]}
-                        </button>
-                      ))}
-                  </div>
-                </div>
-
-                {/* Max Cooking Time Filter */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-headline font-semibold mb-3">
-                    Max Cooking Time
-                  </h3>
-                  <div className="grid grid-cols-4 gap-3">
-                    {[15, 30, 60, 120].map((time) => (
-                      <button
-                        key={time}
-                        onClick={() =>
-                          handleFilterChange(
-                            'max_cooking_time',
-                            filters.max_cooking_time === time ? null : time
-                          )
-                        }
-                        className={`py-3 px-4 rounded-lg font-medium transition-all ${
-                          filters.max_cooking_time === time
-                            ? 'bg-primary text-white'
-                            : 'bg-dark-light hover:bg-dark text-gray-light hover:text-white'
-                        }`}
-                      >
-                        {time < 60 ? `${time}m` : `${time / 60}h`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Ingredient Filter */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-headline font-semibold mb-3">
-                    Specific Ingredient
-                  </h3>
-                  <input
-                    type="text"
-                    value={filters.ingredient}
-                    onChange={(e) => handleFilterChange('ingredient', e.target.value)}
-                    placeholder="e.g., chicken, tomato, pasta"
-                    className="w-full bg-dark-light border border-dark-lighter text-white placeholder-gray rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                  />
+              {/* Difficulty */}
+              <div>
+                <h3 className="text-sm font-semibold text-white/80 mb-3">Difficulty</h3>
+                <div className="flex flex-wrap gap-2">
+                  {filterOptions.difficulty.map(option => (
+                    <Chip
+                      key={option.value}
+                      label={option.label}
+                      selected={filters.difficulty.includes(option.value)}
+                      onClick={() => toggleFilter('difficulty', option.value)}
+                    />
+                  ))}
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="flex gap-3 p-6 border-t border-dark-light">
+              {/* Cooking Time */}
+              <div>
+                <h3 className="text-sm font-semibold text-white/80 mb-3">Cooking Time</h3>
+                <div className="flex flex-wrap gap-2">
+                  {filterOptions.cookingTime.map(option => (
+                    <Chip
+                      key={option.value}
+                      label={option.label}
+                      selected={filters.cookingTime === option.value}
+                      onClick={() => toggleFilter('cookingTime', option.value)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Dietary Restrictions */}
+              <div>
+                <h3 className="text-sm font-semibold text-white/80 mb-3">Dietary Restrictions</h3>
+                <div className="flex flex-wrap gap-2">
+                  {filterOptions.dietary.map(option => (
+                    <Chip
+                      key={option.value}
+                      label={option.label}
+                      selected={filters.dietary.includes(option.value)}
+                      onClick={() => toggleFilter('dietary', option.value)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Cuisine */}
+              <div>
+                <h3 className="text-sm font-semibold text-white/80 mb-3">Cuisine</h3>
+                <div className="flex flex-wrap gap-2">
+                  {filterOptions.cuisine.map(option => (
+                    <Chip
+                      key={option.value}
+                      label={option.label}
+                      selected={filters.cuisine.includes(option.value)}
+                      onClick={() => toggleFilter('cuisine', option.value)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t border-white/10">
                 <Button
-                  variant="secondary"
+                  variant="ghost"
+                  onClick={handleClear}
                   fullWidth
-                  onClick={handleReset}
-                  disabled={activeFilterCount === 0}
+                  disabled={activeFiltersCount === 0}
                 >
-                  Reset
+                  Clear All
                 </Button>
-                <Button variant="primary" fullWidth onClick={handleApply}>
-                  Apply Filters
+                <Button
+                  onClick={handleApply}
+                  fullWidth
+                >
+                  Apply {activeFiltersCount > 0 && `(${activeFiltersCount})`}
                 </Button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
+
+export default FilterPanel;

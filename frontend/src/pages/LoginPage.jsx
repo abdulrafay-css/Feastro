@@ -1,81 +1,105 @@
-import { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { LoginForm } from '@components/auth/LoginForm';
-import { GoogleAuthButton } from '@components/auth/GoogleAuthButton';
-import { useAuth } from '@hooks/useAuth';
-import { Loader } from '@components/common/Loader';
-
 /**
  * Login Page
+ * User login with social auth
  */
-export const LoginPage = () => {
+
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { fadeInUp, staggerContainer, staggerItem } from '../utils/animations';
+import LoginForm from '../components/auth/LoginForm';
+import SocialAuth from '../components/auth/SocialAuth';
+
+const LoginPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useAuth();
 
-  // Redirect to home if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
+  const handleLogin = async (formData) => {
+    // API call to login
+    console.log('Login:', formData);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Navigate to home
+    navigate('/');
+  };
 
-  // Loading state
-  if (loading) {
-    return <Loader fullScreen />;
-  }
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
+  };
+
+  const handleGoogleAuth = async () => {
+    console.log('Google auth');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    navigate('/');
+  };
+
+  const handleFacebookAuth = async () => {
+    console.log('Facebook auth');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    navigate('/');
+  };
+
+  const handleAppleAuth = async () => {
+    console.log('Apple auth');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    navigate('/');
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-dark to-dark-lighter">
+    <div className="min-h-screen bg-bg-primary flex items-center justify-center px-6 py-12">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        {...staggerContainer}
+        className="max-w-md w-full space-y-8"
       >
-        {/* Logo */}
-        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="text-5xl">🍳</div>
-          <span className="text-3xl font-headline font-bold text-primary">
-            Feastro
-          </span>
-        </Link>
-
-        {/* Card */}
-        <div className="bg-dark-lighter rounded-2xl p-8 border border-dark-light">
-          <h1 className="text-3xl font-headline font-bold mb-2 text-center">
+        {/* Logo & Title */}
+        <motion.div {...staggerItem} className="text-center space-y-4">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-orange-500/30">
+              <span className="text-white font-bold text-4xl">F</span>
+            </div>
+          </div>
+          
+          <h1 className="text-3xl font-bold text-white">
             Welcome Back
           </h1>
-          <p className="text-gray-light text-center mb-8">
-            Login to continue cooking
+          
+          <p className="text-white/70">
+            Sign in to continue to Feastro
           </p>
+        </motion.div>
 
-          {/* Google Auth */}
-          <GoogleAuthButton />
+        {/* Social Auth */}
+        <motion.div {...staggerItem}>
+          <SocialAuth
+            onGoogleAuth={handleGoogleAuth}
+            onFacebookAuth={handleFacebookAuth}
+            onAppleAuth={handleAppleAuth}
+          />
+        </motion.div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-dark-light" />
-            <span className="text-gray-light text-sm">or</span>
-            <div className="flex-1 h-px bg-dark-light" />
-          </div>
+        {/* Login Form */}
+        <motion.div {...staggerItem}>
+          <LoginForm
+            onSubmit={handleLogin}
+            onForgotPassword={handleForgotPassword}
+          />
+        </motion.div>
 
-          {/* Login Form */}
-          <LoginForm />
-        </div>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-light mt-6">
-          By continuing, you agree to Feastro's{' '}
-          <Link to="/terms" className="text-primary hover:text-primary-light">
-            Terms of Service
-          </Link>{' '}
-          and{' '}
-          <Link to="/privacy" className="text-primary hover:text-primary-light">
-            Privacy Policy
-          </Link>
-        </p>
+        {/* Sign Up Link */}
+        <motion.div {...staggerItem} className="text-center">
+          <p className="text-white/70">
+            Don't have an account?{' '}
+            <button
+              onClick={() => navigate('/register')}
+              className="text-orange-400 hover:text-orange-300 font-medium transition-colors"
+            >
+              Sign up
+            </button>
+          </p>
+        </motion.div>
       </motion.div>
     </div>
   );
 };
+
+export default LoginPage;

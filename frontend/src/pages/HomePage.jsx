@@ -1,198 +1,159 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
-import { IoFlame, IoSearch } from 'react-icons/io5';
-import { motion } from 'framer-motion';
-import { useAuth } from '@hooks/useAuth';
-import { recipeService } from '@services/recipeService';
-import { Loader } from '@components/common/Loader';
-import { RecipeCard } from '@components/home/RecipeCard';
-import { CategoryChips } from '@components/home/CategoryChips';
-import { formatNumber, getInitials } from '@utils/helpers';
-
 /**
- * Redesigned Home Page - Recipe Discovery
+ * Home Page
+ * Main landing page with personalized recipe feed
  */
-export const HomePage = () => {
-  const navigate = useNavigate();
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
-  
-  const [recommendedRecipes, setRecommendedRecipes] = useState([]);
+
+import { useState, useEffect } from 'react';
+import PageLayout from '../components/layout/PageLayout';
+import CategoryNav from '../components/home/CategoryNav';
+import PersonalizedSection from '../components/home/PersonalizedSection';
+import RecipeGrid from '../components/home/RecipeGrid';
+import TrendingSection from '../components/home/TrendingSection';
+import FeedModal from '../components/feed/FeedModal';
+
+const HomePage = () => {
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [recipes, setRecipes] = useState([]);
   const [trendingRecipes, setTrendingRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('trending');
+  const [feedModalOpen, setFeedModalOpen] = useState(false);
+  const [selectedRecipeIndex, setSelectedRecipeIndex] = useState(0);
 
-  const categories = [
-    { id: 'trending', label: 'Trending', icon: '🔥' },
-    { id: 'breakfast', label: 'Breakfast', icon: '🍳' },
-    { id: 'vegan', label: 'Vegan', icon: '🥗' },
-    { id: 'lunch', label: 'Lunch', icon: '🍱' },
-    { id: 'dinner', label: 'Dinner', icon: '🍽️' },
-  ];
-
-  /**
-   * Fetch recommended recipes
-   */
+  // Mock data - replace with API calls
   useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch personalized recommendations
-        const recommended = await recipeService.getPersonalizedFeed(1, 6);
-        setRecommendedRecipes(recommended.recipes || recommended);
-        
-        // Fetch trending recipes
-        const trending = await recipeService.getTrendingRecipes(10);
-        setTrendingRecipes(trending);
-      } catch (error) {
-        console.error('Failed to fetch recipes:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchRecipes();
+    fetchTrending();
+  }, [selectedCategory]);
 
-    if (isAuthenticated) {
-      fetchRecipes();
-    }
-  }, [isAuthenticated]);
+  const fetchRecipes = async () => {
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      const mockRecipes = Array(12).fill(0).map((_, i) => ({
+        id: `recipe-${i}`,
+        title: `Delicious Recipe ${i + 1}`,
+        thumbnail: `https://picsum.photos/seed/${i}/400/600`,
+        creator: {
+          name: `Chef ${i + 1}`,
+          username: `chef${i + 1}`,
+          avatar: `https://i.pravatar.cc/150?img=${i + 1}`,
+        },
+        cooking_time: 30 + (i * 5),
+        difficulty: ['easy', 'medium', 'hard'][i % 3],
+        likes_count: 1000 + (i * 100),
+        saves_count: 500 + (i * 50),
+        views_count: 5000 + (i * 500),
+        is_liked: i % 3 === 0,
+        is_saved: i % 4 === 0,
+        video_url: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      }));
+      setRecipes(mockRecipes);
+      setLoading(false);
+    }, 1000);
+  };
 
-  // Auth loading
-  if (authLoading) {
-    return <Loader fullScreen />;
-  }
+  const fetchTrending = async () => {
+    // Simulate API call
+    setTimeout(() => {
+      const mockTrending = Array(5).fill(0).map((_, i) => ({
+        id: `trending-${i}`,
+        title: `Trending Recipe ${i + 1}`,
+        thumbnail: `https://picsum.photos/seed/trending${i}/400/600`,
+        creator: {
+          name: `Popular Chef ${i + 1}`,
+          username: `popchef${i + 1}`,
+          avatar: `https://i.pravatar.cc/150?img=${i + 10}`,
+        },
+        cooking_time: 20 + (i * 10),
+        difficulty: 'medium',
+        likes_count: 5000 + (i * 1000),
+        saves_count: 2000 + (i * 500),
+        views_count: 50000 + (i * 10000),
+        video_url: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      }));
+      setTrendingRecipes(mockTrending);
+    }, 800);
+  };
 
-  // Redirect to landing if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/welcome" replace />;
-  }
+  const handleRecipeClick = (recipe) => {
+    const index = recipes.findIndex(r => r.id === recipe.id);
+    setSelectedRecipeIndex(index);
+    setFeedModalOpen(true);
+  };
 
-  // Get greeting based on time
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+  const handleTrendingClick = (recipe) => {
+    const index = recipes.findIndex(r => r.id === recipe.id);
+    setSelectedRecipeIndex(index >= 0 ? index : 0);
+    setFeedModalOpen(true);
+  };
+
+  const handleLike = async (recipe) => {
+    // API call to like recipe
+    console.log('Liked:', recipe);
+  };
+
+  const handleSave = async (recipe) => {
+    // API call to save recipe
+    console.log('Saved:', recipe);
+  };
+
+  const handleLoadMore = async () => {
+    // Load more recipes for feed
+    return recipes.slice(0, 5); // Mock
   };
 
   return (
-    <div className="min-h-screen bg-dark pb-20">
-      {/* Header */}
-      <div className="px-4 pt-8 pb-4 safe-top">
-        {/* Greeting */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <p className="text-gray-light mb-1">{getGreeting()},</p>
-            <h1 className="text-4xl font-headline font-bold flex items-center gap-2">
-              {user?.username || 'Chef'} <span className="text-3xl">👋</span>
-            </h1>
-          </div>
-
-          {/* Avatar */}
-          <button
-            onClick={() => navigate('/profile')}
-            className="flex-shrink-0"
-          >
-            {user?.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                alt={user.username}
-                className="w-14 h-14 rounded-full object-cover border-2 border-primary"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-xl font-headline font-bold">
-                {getInitials(user?.username)}
-              </div>
-            )}
-          </button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => navigate('/search')}
-            className="flex-1 flex items-center gap-3 bg-dark-light border border-dark-lighter rounded-2xl px-4 py-4"
-          >
-            <IoSearch size={20} className="text-gray" />
-            <span className="text-gray">What are you craving?</span>
-          </button>
-
-          <button
-            onClick={() => navigate('/search')}
-            className="bg-dark-light border border-dark-lighter rounded-2xl p-4"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              className="text-gray"
-            >
-              <path
-                d="M2 6h16M2 10h10M2 14h16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Category Chips */}
-        <CategoryChips
-          categories={categories}
-          selected={selectedCategory}
-          onSelect={setSelectedCategory}
+    <PageLayout noPadding noAnimation>
+      <div className="space-y-6">
+        {/* Category Navigation */}
+        <CategoryNav
+          onCategoryChange={setSelectedCategory}
+          initialCategory={selectedCategory}
         />
+
+        <div className="px-4 space-y-8">
+          {/* Trending Section */}
+          <PersonalizedSection
+            title="Trending Now"
+            subtitle="Most popular recipes this week"
+            icon="🔥"
+          >
+            <TrendingSection
+              recipes={trendingRecipes}
+              loading={loading}
+              onRecipeClick={handleTrendingClick}
+              onLike={handleLike}
+              onSave={handleSave}
+            />
+          </PersonalizedSection>
+
+          {/* For You Section */}
+          <PersonalizedSection
+            title="For You"
+            subtitle="Personalized based on your preferences"
+            icon="✨"
+          >
+            <RecipeGrid
+              recipes={recipes}
+              loading={loading}
+              onRecipeClick={handleRecipeClick}
+              onLike={handleLike}
+              onSave={handleSave}
+            />
+          </PersonalizedSection>
+        </div>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader size="large" />
-        </div>
-      ) : (
-        <>
-          {/* Recommended Section */}
-          <div className="px-4 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-headline font-bold mb-1">
-                  Recommended for You
-                </h2>
-                <p className="text-sm text-gray-light">
-                  Based on your recent likes
-                </p>
-              </div>
-              <button
-                onClick={() => navigate('/search')}
-                className="text-primary hover:text-primary-light font-semibold flex items-center gap-1"
-              >
-                See All
-                <span>→</span>
-              </button>
-            </div>
-
-            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-              {recommendedRecipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} variant="horizontal" />
-              ))}
-            </div>
-          </div>
-
-          {/* Trending Section */}
-          <div className="px-4">
-            <h2 className="text-2xl font-headline font-bold mb-4">
-              Trending Near You
-            </h2>
-
-            <div className="grid grid-cols-1 gap-4">
-              {trendingRecipes.slice(0, 4).map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} variant="large" />
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+      {/* Feed Modal */}
+      <FeedModal
+        isOpen={feedModalOpen}
+        onClose={() => setFeedModalOpen(false)}
+        initialRecipes={recipes}
+        initialIndex={selectedRecipeIndex}
+        onLoadMore={handleLoadMore}
+      />
+    </PageLayout>
   );
 };
+
+export default HomePage;

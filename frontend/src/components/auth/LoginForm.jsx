@@ -1,162 +1,158 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { IoMail, IoLockClosed, IoEye, IoEyeOff } from 'react-icons/io5';
-import { Button } from '@components/common/Button';
-import { Input } from '@components/common/Input';
-import { useAuth } from '@hooks/useAuth';
-import { validateEmail } from '@utils/validators';
-
 /**
  * Login Form Component
+ * Login form with validation and error handling
  */
-export const LoginForm = () => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
 
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { fadeInUp } from '../../utils/animations';
+import Input from '../common/Input';
+import Button from '../common/Button';
+import { useToast } from '../../context/ToastContext';
+
+const LoginForm = ({ 
+  onSubmit,
+  onForgotPassword,
+  className = '',
+  ...props 
+}) => {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    rememberMe: false,
   });
-
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Handle input change
-   */
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: null,
-      }));
-    }
-  };
-
-  /**
-   * Validate form
-   */
-  const validate = () => {
+  const validateForm = () => {
     const newErrors = {};
 
     // Email validation
-    const emailError = validateEmail(formData.email);
-    if (emailError) newErrors.email = emailError;
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
 
     // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  /**
-   * Handle form submit
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validateForm()) {
+      showToast('Please fix the errors in the form', 'error');
+      return;
+    }
 
     setLoading(true);
-
     try {
-      await login({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      navigate('/feed');
+      await onSubmit?.(formData);
+      showToast('Login successful! 🎉', 'success');
     } catch (error) {
-      setErrors({
-        submit: error.message || 'Login failed. Please try again.',
-      });
+      showToast(error.message || 'Login failed. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (field) => (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value,
+    }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: '',
+      }));
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <motion.form
+      {...fadeInUp}
+      onSubmit={handleSubmit}
+      className={`w-full space-y-6 ${className}`}
+      {...props}
+    >
       {/* Email Input */}
       <Input
         label="Email"
         type="email"
-        name="email"
+        placeholder="you@example.com"
         value={formData.email}
-        onChange={handleChange}
-        placeholder="your@email.com"
-        icon={<IoMail size={20} />}
+        onChange={handleChange('email')}
         error={errors.email}
-        autoComplete="email"
+        icon={
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        }
+        required
+        disabled={loading}
       />
 
       {/* Password Input */}
-      <div className="relative">
-        <Input
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="Enter your password"
-          icon={<IoLockClosed size={20} />}
-          error={errors.password}
-          autoComplete="current-password"
-        />
+      <Input
+        label="Password"
+        type="password"
+        placeholder="••••••••"
+        value={formData.password}
+        onChange={handleChange('password')}
+        error={errors.password}
+        icon={
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        }
+        required
+        disabled={loading}
+      />
 
-        {/* Toggle Password Visibility */}
+      {/* Remember Me & Forgot Password */}
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={formData.rememberMe}
+            onChange={(e) => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
+            className="w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500 focus:ring-offset-0"
+            disabled={loading}
+          />
+          <span className="text-sm text-white/80">Remember me</span>
+        </label>
+
         <button
           type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-4 top-[42px] text-gray hover:text-white transition-colors"
+          onClick={onForgotPassword}
+          className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
+          disabled={loading}
         >
-          {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+          Forgot password?
         </button>
       </div>
 
-      {/* Forgot Password Link */}
-      <div className="flex justify-end">
-        <Link
-          to="/forgot-password"
-          className="text-sm text-primary hover:text-primary-light transition-colors"
-        >
-          Forgot password?
-        </Link>
-      </div>
-
-      {/* Submit Error */}
-      {errors.submit && (
-        <div className="p-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-lg">
-          <p className="text-sm text-red-500">{errors.submit}</p>
-        </div>
-      )}
-
       {/* Submit Button */}
-      <Button type="submit" variant="primary" fullWidth loading={loading}>
-        Login
+      <Button
+        type="submit"
+        fullWidth
+        loading={loading}
+      >
+        {loading ? 'Logging in...' : 'Login'}
       </Button>
-
-      {/* Sign Up Link */}
-      <p className="text-center text-sm text-gray-light">
-        Don't have an account?{' '}
-        <Link
-          to="/register"
-          className="text-primary hover:text-primary-light font-semibold transition-colors"
-        >
-          Sign up
-        </Link>
-      </p>
-    </form>
+    </motion.form>
   );
 };
+
+export default LoginForm;

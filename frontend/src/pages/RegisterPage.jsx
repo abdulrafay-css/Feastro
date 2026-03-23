@@ -1,69 +1,98 @@
-import { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { RegisterForm } from '@components/auth/RegisterForm';
-import { GoogleAuthButton } from '@components/auth/GoogleAuthButton';
-import { useAuth } from '@hooks/useAuth';
-import { Loader } from '@components/common/Loader';
-
 /**
  * Register Page
+ * User registration with social auth
  */
-export const RegisterPage = () => {
+
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { fadeInUp, staggerContainer, staggerItem } from '../utils/animations';
+import RegisterForm from '../components/auth/RegisterForm';
+import SocialAuth from '../components/auth/SocialAuth';
+
+const RegisterPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useAuth();
 
-  // Redirect to home if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
+  const handleRegister = async (formData) => {
+    // API call to register
+    console.log('Register:', formData);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Navigate to onboarding
+    navigate('/onboarding');
+  };
 
-  // Loading state
-  if (loading) {
-    return <Loader fullScreen />;
-  }
+  const handleGoogleAuth = async () => {
+    console.log('Google auth');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    navigate('/onboarding');
+  };
+
+  const handleFacebookAuth = async () => {
+    console.log('Facebook auth');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    navigate('/onboarding');
+  };
+
+  const handleAppleAuth = async () => {
+    console.log('Apple auth');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    navigate('/onboarding');
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-b from-dark to-dark-lighter">
+    <div className="min-h-screen bg-bg-primary flex items-center justify-center px-6 py-12">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        {...staggerContainer}
+        className="max-w-md w-full space-y-8"
       >
-        {/* Logo */}
-        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="text-5xl">🍳</div>
-          <span className="text-3xl font-headline font-bold text-primary">
-            Feastro
-          </span>
-        </Link>
-
-        {/* Card */}
-        <div className="bg-dark-lighter rounded-2xl p-8 border border-dark-light">
-          <h1 className="text-3xl font-headline font-bold mb-2 text-center">
+        {/* Logo & Title */}
+        <motion.div {...staggerItem} className="text-center space-y-4">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-orange-500/30">
+              <span className="text-white font-bold text-4xl">F</span>
+            </div>
+          </div>
+          
+          <h1 className="text-3xl font-bold text-white">
             Create Account
           </h1>
-          <p className="text-gray-light text-center mb-8">
-            Join the Feastro community
+          
+          <p className="text-white/70">
+            Join Feastro and start discovering recipes
           </p>
+        </motion.div>
 
-          {/* Google Auth */}
-          <GoogleAuthButton />
+        {/* Social Auth */}
+        <motion.div {...staggerItem}>
+          <SocialAuth
+            onGoogleAuth={handleGoogleAuth}
+            onFacebookAuth={handleFacebookAuth}
+            onAppleAuth={handleAppleAuth}
+          />
+        </motion.div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-dark-light" />
-            <span className="text-gray-light text-sm">or</span>
-            <div className="flex-1 h-px bg-dark-light" />
-          </div>
+        {/* Register Form */}
+        <motion.div {...staggerItem}>
+          <RegisterForm onSubmit={handleRegister} />
+        </motion.div>
 
-          {/* Register Form */}
-          <RegisterForm />
-        </div>
+        {/* Login Link */}
+        <motion.div {...staggerItem} className="text-center">
+          <p className="text-white/70">
+            Already have an account?{' '}
+            <button
+              onClick={() => navigate('/login')}
+              className="text-orange-400 hover:text-orange-300 font-medium transition-colors"
+            >
+              Sign in
+            </button>
+          </p>
+        </motion.div>
       </motion.div>
     </div>
   );
 };
+
+export default RegisterPage;
