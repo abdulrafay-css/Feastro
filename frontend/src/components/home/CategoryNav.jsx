@@ -8,15 +8,13 @@ import { useState } from 'react';
 
 const categories = [
   { id: 'all', label: 'All', icon: '🍽️' },
-  { id: 'breakfast', label: 'Breakfast', icon: '🍳' },
-  { id: 'lunch', label: 'Lunch', icon: '🥗' },
-  { id: 'dinner', label: 'Dinner', icon: '🍝' },
-  { id: 'dessert', label: 'Dessert', icon: '🍰' },
-  { id: 'snacks', label: 'Snacks', icon: '🍿' },
-  { id: 'drinks', label: 'Drinks', icon: '🥤' },
-  { id: 'healthy', label: 'Healthy', icon: '🥑' },
+  { id: 'budget', label: 'Budget', icon: '💰' },
   { id: 'quick', label: 'Quick', icon: '⚡' },
-  { id: 'vegetarian', label: 'Vegetarian', icon: '🌱' },
+  { id: 'spicy', label: 'Spicy', icon: '🌶️' },
+  { id: 'healthy', label: 'Healthy', icon: '🥗' },
+  { id: 'comfort', label: 'Comfort', icon: '🍲' },
+  { id: 'protein', label: 'Protein', icon: '💪' },
+  { id: 'late-night', label: 'Late Night', icon: '🌙' },
 ];
 
 const CategoryNav = ({ 

@@ -42,6 +42,9 @@ const FilterPanel = ({
       { value: 'dairy-free', label: '🥛 Dairy-Free' },
       { value: 'keto', label: '🥑 Keto' },
       { value: 'paleo', label: '🥩 Paleo' },
+      { value: 'low-carb', label: '🥑 Low-Carb' },
+      { value: 'high-protein', label: '💪 High-Protein' },
+      { value: 'nut-free', label: '🥜 Nut-Free' },
     ],
     cuisine: [
       { value: 'italian', label: '🇮🇹 Italian' },

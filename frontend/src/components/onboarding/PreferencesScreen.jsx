@@ -30,8 +30,9 @@ const PreferencesScreen = ({
     { id: 'dairy-free', label: '🥛 Dairy-Free' },
     { id: 'keto', label: '🥑 Keto' },
     { id: 'paleo', label: '🥩 Paleo' },
-    { id: 'halal', label: '☪️ Halal' },
-    { id: 'kosher', label: '✡️ Kosher' },
+    { id: 'low-carb', label: '🥑 Low-Carb' },
+    { id: 'high-protein', label: '💪 High-Protein' },
+    { id: 'nut-free', label: '🥜 Nut-Free' },
   ];
 
   const cuisineOptions = [

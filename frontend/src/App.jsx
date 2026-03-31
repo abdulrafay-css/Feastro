@@ -31,7 +31,7 @@ function App() {
   const { showOnboarding, isOnboardingComplete } = useOnboarding();
 
   // Mock authentication - replace with real auth context
-  const isAuthenticated = true;
+  const isAuthenticated = false;
   const currentUser = {
     id: 'user-1',
     name: 'Abdul Rafay',
