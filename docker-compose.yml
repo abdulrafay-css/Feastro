@@ -1,60 +1,37 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: feastro_postgres
-    environment:
-      POSTGRES_USER: feastro_user
-      POSTGRES_PASSWORD: feastro_password
-      POSTGRES_DB: feastro_db
+  # MongoDB Database
+  mongodb:
+    image: mongo:6
+    container_name: feastro_mongodb
     ports:
-      - "5432:5432"
+      - "27017:27017"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U feastro_user"]
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: feastro_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # FastAPI Backend
+  # Node.js Express Backend
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: node:18-alpine
     container_name: feastro_backend
+    working_dir: /app
     environment:
-      DATABASE_URL: postgresql+asyncpg://feastro_user:feastro_password@postgres:5432/feastro_db
-      REDIS_URL: redis://redis:6379/0
-      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
-      DEBUG: ${DEBUG:-True}
+      - PORT=8000
+      - MONGO_URI=mongodb://mongodb:27017/feastro
+      - NODE_ENV=development
     ports:
       - "8000:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
+      mongodb:
         condition: service_healthy
     volumes:
       - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: sh -c "npm install && npm run dev"
 
 volumes:
-  postgres_data:
-  redis_data:
+  mongodb_data:
