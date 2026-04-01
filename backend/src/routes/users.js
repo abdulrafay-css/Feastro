@@ -15,7 +15,7 @@ const {
   getSavedRecipes,
   getCollections,
   deleteAccount,
-} = require('../controllers/userController');
+} = require('../controller/userController');
 
 const router = express.Router();
 

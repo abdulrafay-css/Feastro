@@ -13,7 +13,7 @@ const {
   getCurrentUser,
   logout,
   saveOnboardingPreferences,
-} = require('../controllers/authController');
+} = require('../controller/authController');
 
 const router = express.Router();
 

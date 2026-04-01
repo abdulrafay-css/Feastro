@@ -19,7 +19,7 @@ const {
   unlikeRecipe,
   saveRecipe,
   unsaveRecipe,
-} = require('../controllers/recipeController');
+} = require('../controller/recipeController');
 
 const router = express.Router();
 
